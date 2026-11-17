@@ -12,6 +12,19 @@ A sleek dark theme with a glowing accent color for onlinesequencer.net. Works in
 
 To pick a different accent color, click the extension's icon in the toolbar. If you don't see it, click the little cube/puzzle icon on the right of the address bar and pin "Glow Theme for Online Sequencer".
 
+## Backups & updates
+
+Open **⟲ Backup & updates** in the extension popup.
+
+- **Your data is backed up automatically** — once a day, a few minutes after your Sequence library changes, and right after every update — to `Downloads/Glow Theme backup/glow-backup.json` (one file, replaced each time). It holds your settings, the Sequence library with its version history and pictures, and your comment index. It never holds the account switcher's saved sign-ins: those stay inside the extension. **Save a copy somewhere else…** puts one wherever you like (OneDrive, a USB stick).
+- **Bringing it back**: a fresh install opens the Backup & updates page by itself. **Find my last backup** looks in this browser's downloads list (turn on *Allow access to file URLs* for Glow Theme and it opens the file for you; otherwise choose it). **Choose a backup file…** takes one from anywhere — on a new computer, copy the file over first. Restoring only adds what's missing; nothing you have is removed.
+- **Updating keeps your data** as long as you update the files in the same folder (or use one of the ways below). Removing the extension in Opera deletes its data — restore a backup afterwards.
+- **Automatic updates.** The extension notices when newer files land in its folder and reloads itself into them within a minute or two. The files can arrive three ways:
+  - **GitHub**: set `"repo": "your-name/your-repo"` in `update.json`, then double-click `updater/Install auto-updates.cmd` once on each computer. It checks GitHub every hour (and when you sign in to Windows) and copies a newer version in. `Remove auto-updates.cmd` turns it off. With a repo set, the extension also checks GitHub itself and shows a notice on Online Sequencer when a newer version is out.
+  - **OneDrive**: keep the extension folder inside your OneDrive folder and load it from there on each PC. When OneDrive syncs new files, the extension reloads itself.
+  - **Opera add-ons store**: a copy installed from the store is updated by Opera (its backups and restore work the same).
+- Versions before 2.54.0 don't have any of this: update them once by hand (copy the new files over the old folder and press reload on the extensions page), and they keep themselves current from then on.
+
 ## What it changes
 
 - Deep dark background with an accent glow; the blue header becomes dark + glassy
