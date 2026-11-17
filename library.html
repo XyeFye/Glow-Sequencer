@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sequence library — Online Sequencer</title>
+  <style>
+    :root {
+      --accent: #7c5cff; --accent-rgb: 124, 92, 255;
+      --bg: #0e0e15; --panel: #16161f; --panel-2: #1d1d29; --panel-3: #262636; --border: rgba(255, 255, 255, 0.09);
+      --text: #ececf4; --text-2: #a6a6bd; --text-3: #74748c; --bad: #ff7a8a;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 "Inter", "Segoe UI", system-ui, sans-serif; }
+    a { color: inherit; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 22px 20px 60px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+    @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+    header.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; }
+    .logo { width: 34px; height: 34px; border-radius: 10px; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 55%), var(--accent); box-shadow: 0 0 18px rgba(var(--accent-rgb), .55); display: grid; place-items: center; font-weight: 800; color: #fff; }
+    header.top h1 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+    header.top p { margin: 2px 0 0; color: var(--text-3); font-size: 12.5px; }
+    header.top .links { margin-left: auto; display: flex; gap: 8px; }
+    .bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .search { position: relative; flex: 1; min-width: 220px; }
+    .search input { width: 100%; height: 42px; padding: 0 14px 0 40px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel); outline: none; font-size: 15px; }
+    .search input:focus { border-color: rgba(var(--accent-rgb), .8); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .18); }
+    .search svg { position: absolute; left: 13px; top: 12px; color: var(--text-3); }
+    .ctl { height: 42px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel); color: var(--text-2); color-scheme: dark; }
+    .count { color: var(--text-3); font-size: 12.5px; margin: 0 2px 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .card { border: 1px solid var(--border); background: var(--panel); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s; }
+    .card:hover { border-color: rgba(var(--accent-rgb), .5); box-shadow: 0 0 18px rgba(var(--accent-rgb), .18); }
+    .thumb { aspect-ratio: 16 / 9; background: var(--panel-3) center / cover no-repeat; position: relative; cursor: pointer; border: 0; padding: 0; display: block; width: 100%; }
+    .thumb.none { background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 16px), repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 12px); }
+    .thumb .play { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transition: opacity .15s; background: rgba(0,0,0,.35); color: #fff; font-weight: 700; font-size: 13px; }
+    .thumb:hover .play, .thumb:focus-visible .play { opacity: 1; }
+    .body { padding: 10px 12px 6px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .title { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; outline: none; border-radius: 4px; }
+    .title[contenteditable="true"] { white-space: normal; background: var(--panel-2); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .7); padding: 0 3px; }
+    .meta { color: var(--text-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 8px; }
+    .meta a { color: var(--text-2); text-decoration: none; }
+    .meta a:hover { text-decoration: underline; }
+    .tag { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,.07); color: var(--text-2); }
+    .actions { display: flex; gap: 4px; padding: 6px 8px 9px; flex-wrap: wrap; }
+    .actions button, .actions a { height: 28px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text-2); cursor: pointer; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; }
+    .actions button:hover, .actions a:hover { color: #fff; border-color: rgba(var(--accent-rgb), .6); }
+    .actions .primary { border-color: rgba(var(--accent-rgb), .8); background: rgba(var(--accent-rgb), .28); color: #fff; }
+    .actions .danger:hover { border-color: rgba(255, 122, 138, .7); color: var(--bad); }
+    .actions .grow { flex: 1; }
+    .grp { display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; font-size: 12.5px; cursor: pointer; user-select: none; }
+    .grp input { accent-color: var(--accent); }
+    .tag.ver { background: rgba(var(--accent-rgb), .22); color: #fff; }
+    .hist { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0, 0, 0, .55); backdrop-filter: blur(3px); animation: hfade .2s ease; }
+    .hist[hidden] { display: none; }
+    .hist-card { width: min(640px, calc(100vw - 32px)); max-height: min(80vh, 760px); display: flex; flex-direction: column; border-radius: 16px; border: 1px solid var(--border); background: var(--panel); box-shadow: 0 24px 60px rgba(0, 0, 0, .55); animation: hcard .26s cubic-bezier(.2, .8, .2, 1); }
+    .hist-card header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--border); }
+    .hist-card header b { font-size: 16px; } .hist-card header small { display: block; margin-top: 3px; color: var(--text-3); font-size: 12.5px; }
+    .hist-x { border: 0; background: none; color: var(--text-3); font-size: 16px; cursor: pointer; }
+    .hist-list { overflow-y: auto; padding: 6px 10px 12px; }
+    .ver-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 8px; border-bottom: 1px solid var(--border); animation: hrise .35s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 30ms); }
+    .ver-row:last-child { border-bottom: 0; }
+    .ver-empty { padding: 26px 8px; text-align: center; color: var(--text-3); }
+    .ver-row .vmeta a { color: var(--text-2); }
+    .hist-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px 14px; border-top: 1px solid var(--border); }
+    .hist-foot button, .hist-foot .hist-file { height: 32px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 9px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text-2); font: inherit; font-size: 12.5px; cursor: pointer; }
+    .hist-foot button { border-color: rgba(var(--accent-rgb), .7); background: rgba(var(--accent-rgb), .22); color: #fff; }
+    .hist-foot button:hover, .hist-foot .hist-file:hover { color: #fff; border-color: rgba(var(--accent-rgb), .9); }
+    .hist-foot button:disabled { opacity: .7; cursor: progress; }
+    .hist-foot small { flex-basis: 100%; color: var(--text-3); font-size: 11.5px; }
+    .ver-row .vthumb { width: 74px; aspect-ratio: 16 / 9; border-radius: 6px; background: var(--panel-3) center / cover no-repeat; }
+    .ver-row .vwhen { font-weight: 650; } .ver-row .vmeta { color: var(--text-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 2px; }
+    .ver-row .up { color: #7ee2a8; } .ver-row .down { color: var(--bad); }
+    .ver-row .vact { display: flex; gap: 4px; }
+    .ver-row .vact button { height: 28px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text-2); cursor: pointer; font-size: 12px; }
+    .ver-row .vact button:hover { color: #fff; border-color: rgba(var(--accent-rgb), .6); }
+    .ver-row .vact .primary { border-color: rgba(var(--accent-rgb), .8); background: rgba(var(--accent-rgb), .28); color: #fff; }
+    .ver-row .latest { margin-left: 6px; }
+    @keyframes hfade { from { opacity: 0; } } @keyframes hcard { from { opacity: 0; translate: 0 14px; scale: .97; } } @keyframes hrise { from { opacity: 0; translate: 0 8px; } }
+    @media (prefers-reduced-motion: reduce) { .hist, .hist-card, .ver-row { animation: none !important; } }
+    .empty { text-align: center; padding: 60px 20px; color: var(--text-3); border: 1px dashed var(--border); border-radius: 14px; grid-column: 1 / -1; }
+    .empty b { display: block; color: var(--text-2); font-size: 15px; margin-bottom: 6px; }
+    .side { display: flex; flex-direction: column; gap: 14px; }
+    .box { border: 1px solid var(--border); background: var(--panel); border-radius: 14px; padding: 14px; }
+    .box h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); font-weight: 700; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat { background: var(--panel-2); border-radius: 10px; padding: 8px 10px; }
+    .stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .stat span { font-size: 11.5px; color: var(--text-3); }
+    textarea, .in { width: 100%; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); padding: 6px 8px; font-size: 12.5px; color-scheme: dark; }
+    textarea { min-height: 70px; resize: vertical; }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+    .btn { height: 34px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(var(--accent-rgb), .8); background: rgba(var(--accent-rgb), .3); color: #fff; cursor: pointer; font-weight: 600; }
+    .btn:hover { background: rgba(var(--accent-rgb), .45); box-shadow: 0 0 14px rgba(var(--accent-rgb), .45); }
+    .btn.ghost { border-color: var(--border); background: var(--panel-2); color: var(--text-2); font-weight: 500; }
+    .btn:disabled { opacity: .5; cursor: default; box-shadow: none; }
+    .note { font-size: 11.5px; color: var(--text-3); margin: 8px 0 0; }
+    .progress { margin-top: 10px; }
+    .pbar { height: 6px; border-radius: 999px; background: var(--panel-3); overflow: hidden; }
+    .pbar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb), .8); transition: width .2s; }
+    .progress p { margin: 6px 0 0; font-size: 12px; color: var(--text-3); }
+    .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; transition: .2s; padding: 10px 16px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,.5); pointer-events: none; max-width: calc(100vw - 30px); }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    label.drop { display: block; margin-top: 8px; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; text-align: center; color: var(--text-3); font-size: 12.5px; cursor: pointer; }
+    label.drop:hover, label.drop.over { border-color: rgba(var(--accent-rgb), .8); color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="logo">▤</div>
+      <div><h1>Sequence library</h1><p>Sequences saved as sequence data in this browser — open them in the editor or download them as .sequence files, even if they change or disappear on the site.</p></div>
+      <div class="links"><button class="btn ghost" id="toComments" type="button">⌕ My comments</button></div>
+    </header>
+
+    <main>
+      <div class="bar">
+        <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="Search by title, creator or number" aria-label="Search the library"></div>
+        <select class="ctl" id="sort" aria-label="Sort"><option value="new">Newest saved</option><option value="old">Oldest saved</option><option value="title">Title</option><option value="creator">Creator</option><option value="notes">Most notes</option></select>
+        <label class="ctl grp"><input type="checkbox" id="group" checked> One card per sequence</label>
+      </div>
+      <div class="count" id="count"></div>
+      <div class="grid" id="grid"></div>
+    </main>
+
+    <aside class="side">
+      <section class="box">
+        <h2>Library</h2>
+        <div class="stats"><div class="stat"><b id="sCount">0</b><span>sequences</span></div><div class="stat"><b id="sSize">0</b><span>stored</span></div></div>
+        <p class="note">To save the sequence open in the editor (with unsaved changes), use ▾ next to your name → <em>Save this sequence to my library</em>.</p>
+      </section>
+      <section class="box">
+        <h2>Save from the site</h2>
+        <textarea id="links" placeholder="Paste sequence links or numbers&#10;https://onlinesequencer.net/1234567"></textarea>
+        <div class="row"><button class="btn" id="saveLinks" type="button">Save these</button></div>
+        <div class="row" style="margin-top:14px"><input class="in" id="member" placeholder="Member link or number" style="flex:1 1 100%"><select class="ctl" id="myAccts" style="height:32px;flex:1 1 100%" aria-label="Your accounts"></select></div>
+        <div class="row"><button class="btn ghost" id="saveMember" type="button">Save all their sequences</button><button class="btn ghost" id="stop" type="button" hidden>Stop</button></div>
+        <div class="progress" id="progress" hidden><div class="pbar"><i id="pfill"></i></div><p id="ptext"></p></div>
+      </section>
+      <section class="box">
+        <h2>Files &amp; backup</h2>
+        <label class="drop" id="drop">Drop .sequence files here, or click to pick<input type="file" id="files" accept=".sequence,.json" multiple hidden></label>
+        <div class="row"><button class="btn ghost" id="export" type="button">Back up library</button><label class="btn ghost" style="display:inline-flex;align-items:center;cursor:pointer">Restore backup<input type="file" id="restore" accept=".json" hidden></label></div>
+        <p class="note">A backup is one file with every sequence and its picture. Restoring adds what's missing.</p>
+      </section>
+    </aside>
+  </div>
+  <div class="hist" id="hist" hidden><div class="hist-card" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+    <header><div><b id="histTitle">History</b><small id="histSub"></small></div><button type="button" class="hist-x" aria-label="Close">✕</button></header>
+    <div class="hist-list" id="histList"></div>
+    <footer class="hist-foot"><button type="button" id="histFind" title="Look on the site for older copies of this sequence: the ones it was based on, and the creator's other sequences with the same name">🔎 Find older versions</button><label class="hist-file" title="Add .sequence files you downloaded earlier as versions of this sequence">＋ Add a file as a version<input type="file" id="histFile" accept=".sequence" multiple hidden></label><small>The site keeps only the newest copy of each sequence, so older ones come from copies on the site, files you kept, and what's saved here.</small></footer>
+  </div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="net.js"></script>
+  <script type="module" src="library.js"></script>
+</body>
+</html>

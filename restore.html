@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backup & updates — Glow Theme</title>
+  <style>
+    :root {
+      --accent: #7c5cff; --accent-rgb: 124, 92, 255;
+      --bg: #0e0e15; --panel: #16161f; --panel-2: #1d1d29; --panel-3: #262636; --border: rgba(255, 255, 255, 0.09);
+      --text: #ececf4; --text-2: #a6a6bd; --text-3: #74748c; --bad: #ff7a8a; --good: #5fd39a;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Inter", "Segoe UI", system-ui, sans-serif; }
+    a { color: rgb(var(--accent-rgb)); }
+    button, input { font: inherit; color: inherit; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 70px; display: flex; flex-direction: column; gap: 16px; }
+    header { display: flex; align-items: center; gap: 14px; }
+    .logo { width: 38px; height: 38px; border-radius: 11px; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 55%), var(--accent); box-shadow: 0 0 20px rgba(var(--accent-rgb), .55); flex: none; }
+    h1 { margin: 0; font-size: 21px; letter-spacing: -.01em; }
+    header p { margin: 2px 0 0; color: var(--text-3); font-size: 13px; }
+    .hello { padding: 18px 20px; border-radius: 16px; background: linear-gradient(135deg, rgba(var(--accent-rgb), .22), rgba(var(--accent-rgb), .06)); border: 1px solid rgba(var(--accent-rgb), .45); }
+    .hello b { font-size: 16px; display: block; margin-bottom: 4px; }
+    section { border: 1px solid var(--border); background: var(--panel); border-radius: 16px; padding: 16px 18px; }
+    section h2 { margin: 0 0 4px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    section h2::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px rgba(var(--accent-rgb), .8); }
+    section > p, .note { color: var(--text-2); margin: 4px 0 10px; font-size: 13px; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .btn { height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13px; }
+    .btn:hover { border-color: rgba(var(--accent-rgb), .8); }
+    .btn.main { background: var(--accent); border-color: transparent; color: #fff; box-shadow: 0 0 16px rgba(var(--accent-rgb), .4); }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }
+    .fact { padding: 10px 12px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--border); }
+    .fact b { display: block; font-size: 18px; }
+    .fact small { color: var(--text-3); }
+    code, .path { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--panel-3); padding: 2px 6px; border-radius: 6px; word-break: break-all; }
+    .msg { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); font-size: 13px; }
+    .msg.good { border-color: rgba(95, 211, 154, .5); }
+    .msg.bad { border-color: rgba(255, 122, 138, .55); }
+    ol { margin: 6px 0 0; padding-left: 20px; color: var(--text-2); font-size: 13px; }
+    ol li { margin: 4px 0; }
+    .upd { display: none; }
+    .upd.on { display: block; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header><div class="logo"></div><div><h1>Backup & updates</h1><p>Glow Theme for Online Sequencer · version <span id="ver"></span></p></div></header>
+
+    <div class="hello" id="hello" hidden><b>Welcome to Glow Theme!</b>Used it before — on this computer or another one? Bring back your settings, your Sequence library and its version history below.</div>
+
+    <section id="restoreBox">
+      <h2>Bring back your data</h2>
+      <p>From a Glow Theme backup file. Nothing you have here now is removed: missing library versions, comments and settings are added.</p>
+      <div class="row">
+        <button class="btn main" id="find" type="button">🔎 Find my last backup</button>
+        <label class="btn" title="Pick a glow-backup.json file">📂 Choose a backup file…<input type="file" id="file" accept=".json,application/json" hidden></label>
+      </div>
+      <div id="found" class="msg" hidden></div>
+      <div id="preview" hidden>
+        <div class="facts" id="facts"></div>
+        <div class="row"><button class="btn main" id="doRestore" type="button">Restore</button><button class="btn" id="cancel" type="button">Cancel</button></div>
+      </div>
+      <div id="result" class="msg" hidden></div>
+    </section>
+
+    <section>
+      <h2>Your backups</h2>
+      <p>Glow Theme writes a backup by itself — once a day, a few minutes after your library changes, and after every update — to <code>Downloads/Glow Theme backup/glow-backup.json</code> (one file, replaced each time). It holds your settings, the Sequence library with its version history and pictures, and your comment index — never your saved account sign-ins, which stay inside the extension.</p>
+      <div class="facts" id="last"></div>
+      <div class="row">
+        <button class="btn main" id="now" type="button">Back up now</button>
+        <button class="btn" id="saveAs" type="button" title="Save a copy anywhere — OneDrive, a USB stick, another computer">💾 Save a copy somewhere else…</button>
+      </div>
+      <div id="nowMsg" class="msg" hidden></div>
+    </section>
+
+    <section>
+      <h2>Updates</h2>
+      <div class="upd" id="updNew"><div class="msg good" id="updNewText"></div></div>
+      <p id="updHow"></p>
+      <div class="row"><button class="btn" id="check" type="button">Check for updates</button></div>
+      <div id="updMsg" class="msg" hidden></div>
+    </section>
+  </div>
+  <script type="module" src="restore.js"></script>
+</body>
+</html>

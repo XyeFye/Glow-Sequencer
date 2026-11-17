@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Glow Theme</title>
+  <style>
+    :root { --accent: #7c5cff; --accent-rgb: 124, 92, 255; }
+    * { box-sizing: border-box; }
+    body {
+      width: 272px;
+      margin: 0;
+      padding: 16px;
+      background: #0f0f17;
+      color: #ececf4;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      font-size: 13px;
+    }
+    h1 { font-size: 15px; margin: 0 0 2px; letter-spacing: -0.01em; }
+    .sub { color: #8a8aa3; margin: 0 0 12px; font-size: 12px; }
+    .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a8aa3; margin: 12px 0 8px; }
+
+    .styles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .style {
+      cursor: pointer; border-radius: 10px; padding: 6px 4px 5px; text-align: center;
+      border: 1px solid rgba(255,255,255,0.08); background: #14141f;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .style .chip {
+      height: 26px; border-radius: 6px; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.1);
+      background: var(--p);
+    }
+    .style span { font-size: 10px; color: #a6a6bd; display: block; }
+    .style:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+    .style.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(var(--accent-rgb), 0.5); }
+    .style.active span { color: #fff; }
+
+    .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .swatch {
+      aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease; background: var(--c);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent);
+    }
+    .swatch:hover { transform: scale(1.12); }
+    .swatch.active { border-color: #fff; box-shadow: 0 0 0 2px #0f0f17, 0 0 0 3px var(--c), 0 0 16px var(--c); }
+    .custom {
+      display: flex; align-items: center; gap: 10px; margin-top: 10px;
+      background: #14141f; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 10px;
+    }
+    .custom input[type="color"] { width: 32px; height: 32px; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 8px; overflow: hidden; }
+    .custom span { color: #a6a6bd; }
+    .row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #14141f; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 9px 10px; margin-top: 8px;
+    }
+    .toggle { position: relative; width: 36px; height: 20px; flex: none; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .track { position: absolute; inset: 0; background: #2a2a3d; border-radius: 999px; transition: background 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+    .toggle .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s ease; }
+    .toggle input:checked + .track { background: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); }
+    .toggle input:checked + .track::after { transform: translateX(16px); }
+    .preview {
+      margin-top: 14px; padding: 10px; border-radius: 10px; text-align: center; font-weight: 700; color: #fff;
+      background: linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb), 0.7));
+      box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.35), 0 0 18px rgba(var(--accent-rgb), 0.5);
+    }
+    .slider-row { gap: 10px; }
+    .slider-row input[type="range"] { -webkit-appearance: none; appearance: none; flex: 1; height: 4px; border-radius: 2px; background: #2a2a3d; margin: 0; }
+    .slider-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.9); cursor: pointer; }
+    #tintVal { width: 40px; text-align: right; color: #a6a6bd; font-variant-numeric: tabular-nums; }
+    .hint { margin-top: 10px; color: #6e6e86; font-size: 11px; text-align: center; }
+
+    .accts { display: flex; flex-direction: column; gap: 4px; }
+    .acct { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.06); background: #14141f; color: #ececf4; font: inherit; text-align: left; cursor: pointer; }
+    .acct:hover { border-color: rgba(var(--accent-rgb), 0.55); }
+    .acct.current { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.5), 0 0 10px rgba(var(--accent-rgb), 0.3); cursor: default; }
+    .acct.out { opacity: 0.55; }
+    .acct .av { width: 22px; height: 22px; border-radius: 50%; flex: none; background: #262636 center/cover no-repeat; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #a6a6bd; }
+    .acct .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .acct small { color: #8a8aa3; font-size: 11px; }
+    .acct-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+    .pbtn { height: 30px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.1); background: #14141f; color: #ececf4; font: inherit; font-size: 12px; cursor: pointer; }
+    .pbtn:hover { border-color: rgba(var(--accent-rgb), 0.6); box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.35); }
+    .pbtn.primary { border-color: rgba(var(--accent-rgb), 0.8); background: rgba(var(--accent-rgb), 0.25); }
+    .acct-note { color: #6e6e86; font-size: 11px; margin: 6px 0 0; }
+    .acct-note:empty { display: none; }
+    .linkish { display: block; margin: 6px 0 0; padding: 0; border: 0; background: none; color: #6e6e86; font: inherit; font-size: 11px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+    .linkish:hover { color: #ececf4; }
+    .row .t { min-width: 0; padding-right: 8px; }
+    .row .t small { display: block; color: #6e6e86; font-size: 11px; margin-top: 1px; }
+    .qol-group { font-size: 10.5px; color: #6e6e86; margin: 10px 2px 0; }
+    .qol-head { display: flex; align-items: baseline; justify-content: space-between; }
+    .qol-head button { border: 0; background: none; color: #6e6e86; font: inherit; font-size: 11px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 0; }
+    .qol-head button:hover { color: #ececf4; }
+    .seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: #0f0f17; border: 1px solid rgba(255,255,255,0.08); flex: none; }
+    .seg button { min-width: 26px; height: 24px; padding: 0 7px; border: 0; border-radius: 7px; background: none; color: #8a8aa3; font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+    .seg button:hover { color: #ececf4; }
+    .seg button.on { background: rgba(var(--accent-rgb), 0.35); color: #fff; box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.45); }
+    .upd-note { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; font-size: 12px; background: rgba(var(--accent-rgb), .16); border: 1px solid rgba(var(--accent-rgb), .5); cursor: pointer; }
+</style>
+</head>
+<body>
+  <h1>Glow Theme</h1>
+  <p class="sub">Sleek dark mode for onlinesequencer.net</p>
+
+  <div class="label">Accounts</div>
+  <div class="accts" id="accts"></div>
+  <div class="acct-actions">
+    <button class="pbtn" id="addAcct" type="button">＋ Add account</button>
+    <button class="pbtn primary" id="myComments" type="button">⌕ My comments</button>
+    <button class="pbtn" id="myLibrary" type="button">▤ Sequence library</button>
+    <button class="pbtn" id="backupPage" type="button" title="Backups of your settings and library, restoring them, and updates">⟲ Backup &amp; updates</button>
+  </div>
+  <p class="upd-note" id="updNote" hidden></p>
+  <p class="acct-note" id="acctNote"></p>
+  <button class="linkish" id="diag" type="button">Copy troubleshooting info</button>
+
+  <div class="label">Style</div>
+  <div class="styles" id="styles">
+    <div class="style" data-style="glow" style="--p: linear-gradient(135deg, #20202c, #2a2a3a)" title="Dark with a soft accent glow"><div class="chip"></div><span>Glow</span></div>
+    <div class="style" data-style="midnight" style="--p: linear-gradient(135deg, #000, #15151b)" title="Pure black (OLED)"><div class="chip"></div><span>Midnight</span></div>
+    <div class="style" data-style="slate" style="--p: linear-gradient(135deg, #2a303a, #3e4654)" title="Lighter cool grey"><div class="chip"></div><span>Slate</span></div>
+    <div class="style" data-style="glass" style="--p: linear-gradient(135deg, rgba(124,92,255,0.45), rgba(40,40,70,0.6))" title="Frosted, translucent panels"><div class="chip"></div><span>Glass</span></div>
+    <div class="style" data-style="neon" style="--p: linear-gradient(135deg, #050508, #1a1030); box-shadow: inset 0 0 0 1px rgba(124,92,255,0.6)" title="Near-black with intense glow"><div class="chip"></div><span>Neon</span></div>
+  </div>
+
+  <div class="label">Accent color</div>
+  <div class="swatches" id="swatches">
+    <div class="swatch" data-color="#7c5cff" style="--c:#7c5cff" title="Violet"></div>
+    <div class="swatch" data-color="#00d4ff" style="--c:#00d4ff" title="Cyan"></div>
+    <div class="swatch" data-color="#ff3d81" style="--c:#ff3d81" title="Pink"></div>
+    <div class="swatch" data-color="#39ff88" style="--c:#39ff88" title="Green"></div>
+    <div class="swatch" data-color="#ffb02e" style="--c:#ffb02e" title="Amber"></div>
+    <div class="swatch" data-color="#ff4d4d" style="--c:#ff4d4d" title="Red"></div>
+  </div>
+  <label class="custom">
+    <input type="color" id="customColor" value="#7c5cff" />
+    <span>Custom color</span>
+  </label>
+
+  <div class="label">Tint &amp; glow strength</div>
+  <div class="row slider-row">
+    <input type="range" id="tint" min="0" max="2" step="0.05" value="1" />
+    <span id="tintVal">100%</span>
+  </div>
+
+  <div class="label">Options</div>
+  <div class="row">
+    <span>Glow animations</span>
+    <label class="toggle"><input type="checkbox" id="animations" checked /><span class="track"></span></label>
+  </div>
+  <div class="row">
+    <span>Hide ad banners</span>
+    <label class="toggle"><input type="checkbox" id="hideAds" checked /><span class="track"></span></label>
+  </div>
+  <div class="row">
+    <span>Dark note grid</span>
+    <label class="toggle"><input type="checkbox" id="gridTheme" checked /><span class="track"></span></label>
+  </div>
+
+  <div class="label qol-head"><span>Quality of life</span><button type="button" id="qolAll">Turn all off</button></div>
+  <div id="qol">
+    <div class="qol-group">Layout</div>
+    <div class="row"><span class="t">Glow layout<small>A console-style top bar with search, a sidebar with who you follow, framed sequence cards, studio-style profiles</small></span><label class="toggle"><input type="checkbox" data-qol="ytLayout" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Glow player &amp; Studio<small>The Glow player on every sequence page and playlist (a switch takes you back to the site’s view), and Studio for playlists (song, playlist, sequencer, visualizer and comments side by side)</small></span><label class="toggle"><input type="checkbox" data-qol="scPlaylists" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Suggestions beside the Glow player<small>A “For you” column: music like what’s playing, more from its creator and people you follow, what’s popular this week, and playlists (a few pages, read slowly and remembered for 30 minutes)</small></span><label class="toggle"><input type="checkbox" data-qol="scRecs"><span></span></label></div>
+    <div class="row"><span class="t">Play the next song when one ends<small>On a sequence's page in the Glow player, when the song finishes it goes on to the next one in the list you opened it from (or the creator's sequences) instead of starting over</small></span><label class="toggle"><input type="checkbox" data-qol="autoNext"><span></span></label></div>
+    <div class="row"><span class="t">Back up every save<small>Each time you save a sequence on the site, a copy goes to your Sequence library on this computer — its history, newest 50 saves per sequence</small></span><label class="toggle"><input type="checkbox" data-qol="backupSaves"><span></span></label></div>
+    <div class="qol-group">Profiles</div>
+    <div class="row"><span class="t">Profile banners<small>Wide banner on profiles; set yours from your profile</small></span><label class="toggle"><input type="checkbox" data-qol="banners" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Profile sequence browser<small>Big cards, search, filters, endless scrolling</small></span><label class="toggle"><input type="checkbox" data-qol="profileBrowser" checked /><span class="track"></span></label></div>
+    <div class="qol-group">Sequences</div>
+    <div class="row"><span class="t">Quick actions on cards<small>Open, save, copy link, comment count on hover</small></span><label class="toggle"><input type="checkbox" data-qol="quickActions" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Endless scrolling<small>Load the next page as you scroll</small></span><label class="toggle"><input type="checkbox" data-qol="endless" checked /><span class="track"></span></label></div>
+    <div class="qol-group">Card sizes</div>
+    <div class="row"><span class="t">Sequences pages</span><div class="seg" data-size="seqSize"><button type="button" data-v="classic" title="The site's own cards">Site</button><button type="button" data-v="s">S</button><button type="button" data-v="m">M</button><button type="button" data-v="l">L</button></div></div>
+    <div class="row"><span class="t">Profile sequences</span><div class="seg" data-size="profileSize"><button type="button" data-v="s">S</button><button type="button" data-v="m">M</button><button type="button" data-v="l">L</button></div></div>
+    <div class="row"><span class="t">Featured &amp; playlists</span><div class="seg" data-size="featuredSize"><button type="button" data-v="classic" title="The site's own cards">Site</button><button type="button" data-v="s">S</button><button type="button" data-v="m">M</button><button type="button" data-v="l">L</button></div></div>
+    <div class="qol-group">Everywhere</div>
+    <div class="row"><span class="t">Sticky header<small>Header stays at the top while scrolling</small></span><label class="toggle"><input type="checkbox" data-qol="sticky" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Back to top button</span><label class="toggle"><input type="checkbox" data-qol="backToTop" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Recently viewed<small>Clock button next to your name</small></span><label class="toggle"><input type="checkbox" data-qol="recent" checked /><span class="track"></span></label></div>
+    <div class="row"><span class="t">Keyboard shortcuts<small>Press ? on the site for the list</small></span><label class="toggle"><input type="checkbox" data-qol="shortcuts" checked /><span class="track"></span></label></div>
+  </div>
+
+  <div class="preview" id="preview">▶ Play</div>
+  <p class="hint">Changes apply instantly on open Online Sequencer tabs.</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

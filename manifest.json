@@ -1,0 +1,94 @@
+{
+  "manifest_version": 3,
+  "name": "Glow Theme for Online Sequencer",
+  "version": "2.54.0",
+  "description": "A sleek dark theme with a glowing accent for onlinesequencer.net, plus editor tools, an account switcher and a search for your comments.",
+  "permissions": [
+    "storage",
+    "cookies",
+    "webRequest",
+    "unlimitedStorage",
+    "downloads",
+    "downloads.ui",
+    "alarms",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "https://onlinesequencer.net/*",
+    "https://*.onlinesequencer.net/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Glow Theme for Online Sequencer",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://onlinesequencer.net/*",
+        "https://*.onlinesequencer.net/*"
+      ],
+      "css": [
+        "theme.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://onlinesequencer.net/*"
+      ],
+      "js": [
+        "net.js",
+        "grid.js",
+        "ml.js",
+        "tools.js",
+        "layers.js",
+        "slides.js",
+        "options.js",
+        "fx.js",
+        "timesig.js",
+        "libmain.js",
+        "space.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://onlinesequencer.net/*"
+      ],
+      "js": [
+        "net.js",
+        "cparse.js",
+        "accounts.js",
+        "site.js",
+        "groups.js",
+        "yt.js",
+        "sc.js",
+        "ready.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "optional_permissions": [
+    "history"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}
