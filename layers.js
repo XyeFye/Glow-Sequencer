@@ -58,13 +58,38 @@
   function sync() {
     const have = new Set(), groups = new Set(); let added = false;
     walk(tree, (n) => { if (n.t === "i") have.add(n.inst); else if (n.t === "g") groups.add(n.id); });
+    const home = find(tree, (x) => x.t === "f" && x.auto === "song" && x.home), into = home ? home.node.kids : tree;
     for (const n of live()) {
-      if (!have.has(n.instrument)) { have.add(n.instrument); tree.push({ t: "i", inst: n.instrument }); added = true; }
+      if (!have.has(n.instrument)) { have.add(n.instrument); into.push({ t: "i", inst: n.instrument }); added = true; }
       const g = n[G]; if (g && !groups.has(g)) { groups.add(g); tree.unshift({ t: "g", id: g, name: "Group", color: PALETTE[groups.size % PALETTE.length], open: false, kids: [] }); added = true; }
     }
     if (added) rev++;
     if (!opts.noThumb) autoThumb(false);
+    songFolder();
   }
+  // Every song's tracks sit in a folder named after the song (made once; dissolve it and it stays gone). Songs added
+  // to this one with "Add a song…" get a folder each, next to it.
+  const songTitle = () => { try { return getTitle(); } catch (e) { return "This song"; } };
+  function songFolder() {
+    const home = find(tree, (x) => x.t === "f" && x.auto === "song" && x.home);
+    if (home) { if (home.node.name === "Untitled" && songTitle() !== "Untitled") { home.node.name = songTitle().slice(0, 60); rev++; } return home.node; }   // named once the song gets a name
+    if (opts.songFolder) return null;   // it was made before and dissolved since: leave it gone
+    const loose = tree.filter((n) => !n.auto); if (!loose.length || !live().length) return null;
+    const f = { ...newFolderNode(songTitle()), auto: "song", home: true, color: PALETTE[0] }, at = tree.indexOf(loose[0]);
+    tree = tree.filter((n) => !loose.includes(n)); f.kids = loose; tree.splice(Math.min(at, tree.length), 0, f);
+    opts.songFolder = true; rev++; return f;
+  }
+  function addSong(name, insts) {
+    sync(); if (!find(tree, (x) => x.t === "f" && x.auto === "song" && x.home)) { opts.songFolder = false; songFolder(); } opts.songFolder = true;
+    const f = { ...newFolderNode(String(name || "Added song").slice(0, 60)), auto: "song", color: PALETTE[(tree.filter((x) => x.auto === "song").length + 1) % PALETTE.length] };
+    for (const inst of insts) {   // its tracks move from wherever sync filed them into its own folder
+      const t = byKey("i:" + inst); const node = t ? t.list.splice(t.index, 1)[0] : { t: "i", inst };
+      f.kids.push(node);
+    }
+    tree.push(f); changed();
+    return f.id;
+  }
+  window.__osgLayersAPI = { addSong, open: () => open() };
   // Thumbnail art: the site draws a sequence's thumbnail from its first measures. Art is drawn with duplicated
   // ("cloned") 8-Bit Square instruments, or with silent notes. An instrument whose notes all sit in those first
   // measures and is either an 8-Bit Square clone or entirely silent is thumbnail art — its track goes into an
@@ -163,7 +188,7 @@
       if (!Array.isArray(list) || depth > 8) return;
       for (const n of list) {
         if (!n || ++count > 2000) return;
-        if (n.t === "f") { const f = { t: "f", id: str(n.id, newId("f")), name: str(n.name, "Folder"), color: col(n.color), open: n.open !== false, hidden: !!n.hidden, mute: !!n.mute, lock: !!n.lock, solo: !!n.solo, kids: [] }; if (n.auto === "thumb") f.auto = "thumb"; rec(n.kids, f.kids, depth + 1); into.push(f); }
+        if (n.t === "f") { const f = { t: "f", id: str(n.id, newId("f")), name: str(n.name, "Folder"), color: col(n.color), open: n.open !== false, hidden: !!n.hidden, mute: !!n.mute, lock: !!n.lock, solo: !!n.solo, kids: [] }; if (n.auto === "thumb") f.auto = "thumb"; if (n.auto === "song") { f.auto = "song"; if (n.home) f.home = true; } rec(n.kids, f.kids, depth + 1); into.push(f); }
         else if (n.t === "i" && Number.isInteger(n.inst) && n.inst >= 0 && !seen.has("i" + n.inst)) { seen.add("i" + n.inst); into.push({ t: "i", inst: n.inst, hidden: !!n.hidden }); }
         else if (n.t === "g" && n.id && !seen.has("g" + n.id)) { seen.add("g" + n.id); const g = { t: "g", id: str(n.id), name: str(n.name, "Group"), color: col(n.color), hidden: !!n.hidden, mute: !!n.mute, lock: !!n.lock, solo: !!n.solo, open: !!n.open, kids: [] }; if (n.auto === "thumb" || n.auto === "thumbNotes") g.auto = n.auto; rec(n.kids, g.kids, depth + 1); into.push(g); }
       }
@@ -176,7 +201,7 @@
     for (const k of tries) { try { const d = JSON.parse(LS.get(storeKey(k)) || "null"); if (d && Array.isArray(d.tree)) { data = d; break; } } catch (e) {} }
     loadedFor = id; opts = { v: 3 }; songRef = song;
     if (!data) { sync(); apply(); return; }
-    tree = clean(data.tree); opts = { v: 3, noThumb: !!(data.opts && data.opts.noThumb), thumbDone: Array.isArray(data.opts && data.opts.thumbDone) ? data.opts.thumbDone.filter(Number.isInteger).slice(0, 500) : [] };
+    tree = clean(data.tree); opts = { v: 3, noThumb: !!(data.opts && data.opts.noThumb), thumbDone: Array.isArray(data.opts && data.opts.thumbDone) ? data.opts.thumbDone.filter(Number.isInteger).slice(0, 500) : [], songFolder: !!(data.opts && data.opts.songFolder) };
     if (!data.opts || data.opts.v !== 3) { opts.noThumb = false; opts.thumbDone = []; }   // layouts saved by earlier versions: file the thumbnail art again under the current rules
     const want = new Map();   // signature → [group ids] (duplicates are matched one by one)
     for (const [g, sigs] of Object.entries(data.groups || {})) for (const s of sigs || []) { const a = want.get(s); if (a) a.push(g); else want.set(s, [g]); }
@@ -768,6 +793,7 @@
   function clearSolo() { let n = 0; walk(tree, (x) => { if (x.t !== "i" && x.solo) { x.solo = false; n++; } }); if (nativeSoloAny()) { try { window.clearSolo(); } catch (e) {} n++; } if (n) changed(); }
   function panelMenu(anchor) {
     const items = [
+      ["Add a song into this one (.sequence file or link)…", () => { if (window.__osgMerge) window.__osgMerge.open(); }],
       ["Find thumbnail art (8-Bit Square duplicates / silent instruments in the first " + THUMB_MEASURES + " measures)", () => autoThumb(true)],
       ["Clear all solos", clearSolo],
       batch ? ["Stop the batch export", () => { if (batch) batch.stop = true; }] : ["Download every top-level folder / group / track as .wav", () => exportAll(false)],
@@ -781,12 +807,13 @@
 
   function build() {
     box = document.createElement("div"); box.id = "osg-layers";
-    box.innerHTML = `<div class="osg-ly-tools"><button class="osg-ly-tool" data-tool="folder" title="New folder — around the selected rows if any (Ctrl+Alt+G)">${SVG.folder}<span>New folder</span></button><button class="osg-ly-tool" data-tool="group" title="Group the selected notes, or the selected rows (Ctrl+G)">${SVG.group}<span>Group</span></button><button class="osg-ly-tool osg-ly-unsolo" data-tool="unsolo" title="Turn off every soloed group and folder" hidden>S<span>Clear solo</span></button><button class="osg-ly-tool osg-ly-more" data-tool="more" title="More" aria-label="More">${SVG.more}</button></div><div class="osg-ly-tree" role="tree" aria-label="Layers"></div><div class="osg-ly-foot"><button type="button" class="osg-ly-foot-toggle" data-tool="tips" aria-expanded="false"><span class="osg-ly-foot-caret">▴</span> Tips</button><div class="osg-ly-foot-body" hidden>Click rows to select them (<b>Shift</b> for a range, <b>Ctrl</b> to add). <b>Ctrl+G</b> puts the selected rows — or the selected notes — in a new group, <b>Ctrl+Alt+G</b> in a new folder, <b>Ctrl+Shift+G</b> dissolves / ungroups. Double-click, Enter or F2 renames (tracks too); right-click a row's icon, or press Alt+I, to change its colour; right-click anywhere else on a row for its menu. Groups and folders nest inside each other. Drag rows (all selected ones move together) to reorder, or onto the middle of a group or folder to put them inside; the ⋯ menu has Move up / down / into too. ▸ collapses or expands. Hidden notes still play; <b>S</b> solos a group or folder; the ⋯ menu downloads a layer as .wav / .mp3. Saved in this browser for this sequence.</div></div>`;
+    box.innerHTML = `<div class="osg-ly-tools"><button class="osg-ly-tool" data-tool="folder" title="New folder — around the selected rows if any (Ctrl+Alt+G)">${SVG.folder}<span>New folder</span></button><button class="osg-ly-tool" data-tool="group" title="Group the selected notes, or the selected rows (Ctrl+G)">${SVG.group}<span>Group</span></button><button class="osg-ly-tool" data-tool="addsong" title="Add another song into this one — from a .sequence file or a link. Nothing here is replaced; instruments it shares with this song go on new copies.">＋<span>Add a song</span></button><button class="osg-ly-tool osg-ly-unsolo" data-tool="unsolo" title="Turn off every soloed group and folder" hidden>S<span>Clear solo</span></button><button class="osg-ly-tool osg-ly-more" data-tool="more" title="More" aria-label="More">${SVG.more}</button></div><div class="osg-ly-tree" role="tree" aria-label="Layers"></div><div class="osg-ly-foot"><button type="button" class="osg-ly-foot-toggle" data-tool="tips" aria-expanded="false"><span class="osg-ly-foot-caret">▴</span> Tips</button><div class="osg-ly-foot-body" hidden>Click rows to select them (<b>Shift</b> for a range, <b>Ctrl</b> to add). <b>Ctrl+G</b> puts the selected rows — or the selected notes — in a new group, <b>Ctrl+Alt+G</b> in a new folder, <b>Ctrl+Shift+G</b> dissolves / ungroups. Double-click, Enter or F2 renames (tracks too); right-click a row's icon, or press Alt+I, to change its colour; right-click anywhere else on a row for its menu. Groups and folders nest inside each other. Drag rows (all selected ones move together) to reorder, or onto the middle of a group or folder to put them inside; the ⋯ menu has Move up / down / into too. ▸ collapses or expands. Hidden notes still play; <b>S</b> solos a group or folder; the ⋯ menu downloads a layer as .wav / .mp3. Saved in this browser for this sequence.</div></div>`;
     treeEl = box.querySelector(".osg-ly-tree");
     menu = document.createElement("div"); menu.id = "osg-ly-menu"; menu.hidden = true; document.body.appendChild(menu);
     box.querySelector("[data-tool=folder]").onclick = () => newFolder(null);
     box.querySelector("[data-tool=group]").onclick = groupSelection;
     box.querySelector("[data-tool=unsolo]").onclick = clearSolo;
+    box.querySelector("[data-tool=addsong]").onclick = () => { if (window.__osgMerge) window.__osgMerge.open(); };
     box.querySelector("[data-tool=more]").onclick = (e) => panelMenu(e.currentTarget);
     { // the tips at the bottom stay tucked away until pulled open
       const tg = box.querySelector("[data-tool=tips]"), body = box.querySelector(".osg-ly-foot-body"); let on = LS.get("osg-layers-tips") === "1";

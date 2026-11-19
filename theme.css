@@ -2347,3 +2347,30 @@ html.osg-no-anim .osg-sv-rail { transition: none !important; }
 #osg-update button { flex: none; height: 32px; padding: 0 12px; border: 0; border-radius: 9px; cursor: pointer; font: 600 12.5px "Inter", "Segoe UI", system-ui, sans-serif; }
 #osg-update .osg-up-go { background: var(--os-accent); color: #fff; }
 #osg-update .osg-up-x { width: 32px; padding: 0; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.75); }
+
+/* "Add a song to this one" (merge.js) */
+#osg-merge { position: fixed; inset: 0; z-index: 100001; display: grid; place-items: center; background: rgba(6, 5, 12, 0.6); backdrop-filter: blur(3px); animation: osg-mg-fade 0.2s both; }
+@keyframes osg-mg-fade { from { opacity: 0; } }
+#osg-merge .osg-mg-card { width: min(520px, calc(100vw - 24px)); padding: 16px 18px 18px; border-radius: 18px; background: #14121e; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(var(--os-accent-rgb), 0.25); color: #fff; font: 13.5px/1.45 "Inter", "Segoe UI", system-ui, sans-serif; animation: osg-mg-pop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes osg-mg-pop { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+#osg-merge header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+#osg-merge header b { font-size: 16px; }
+#osg-merge .osg-mg-x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); cursor: pointer; }
+#osg-merge .osg-mg-sub { margin: 0 0 12px; color: rgba(255, 255, 255, 0.65); }
+#osg-merge .osg-mg-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#osg-merge .osg-mg-pick > span { color: rgba(255, 255, 255, 0.45); }
+#osg-merge .osg-mg-file, #osg-merge .osg-mg-link button, #osg-merge .osg-mg-go, #osg-merge .osg-mg-choices button { height: 36px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.06); color: #fff; font: 600 13px "Inter", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+#osg-merge .osg-mg-file:hover, #osg-merge .osg-mg-link button:hover, #osg-merge .osg-mg-choices button:hover { border-color: rgba(var(--os-accent-rgb), 0.8); }
+#osg-merge .osg-mg-link { display: flex; gap: 6px; flex: 1; min-width: 220px; }
+#osg-merge .osg-mg-link input { flex: 1; min-width: 0; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.3); color: #fff; font: 13px "Inter", "Segoe UI", system-ui, sans-serif; }
+#osg-merge .osg-mg-info { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(var(--os-accent-rgb), 0.12); border: 1px solid rgba(var(--os-accent-rgb), 0.4); }
+#osg-merge .osg-mg-info.bad { background: rgba(255, 90, 110, 0.12); border-color: rgba(255, 90, 110, 0.5); }
+#osg-merge .osg-mg-opts { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 12px; color: rgba(255, 255, 255, 0.8); }
+#osg-merge .osg-mg-opts select { height: 30px; margin-left: 6px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15); background: #1d1a2a; color: #fff; }
+#osg-merge footer { display: flex; justify-content: flex-end; margin-top: 14px; }
+#osg-merge .osg-mg-go { background: var(--os-accent); border-color: transparent; box-shadow: 0 0 16px rgba(var(--os-accent-rgb), 0.4); }
+#osg-merge .osg-mg-go:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+#osg-merge .osg-mg-choices { display: grid; gap: 8px; }
+#osg-merge .osg-mg-choices button { height: auto; padding: 10px 14px; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+#osg-merge .osg-mg-choices button small { font-weight: 400; color: rgba(255, 255, 255, 0.6); }
+#osg-merge .osg-mg-choices .osg-mg-add { background: rgba(var(--os-accent-rgb), 0.22); border-color: rgba(var(--os-accent-rgb), 0.6); }
