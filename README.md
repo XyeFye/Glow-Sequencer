@@ -70,6 +70,16 @@ The site's sequence file has no room for any of this, so the layout is saved in 
 - **Volume & effects in the panel**: the sliders button on a track opens a mixer drawer under it — volume, pan, detune, reverb (on/off, type, amount), delay, distortion (on/off, type, amount), bitcrusher (on/off, depth, level) and EQ (on/off, low/mid/high) — all through the site's own instrument settings, so its instrument panel and the audio stay in step. On a folder or group the drawer edits every track inside at once; on a selected track it edits all selected tracks. Each slider drag is one undo step.
 - **Half-visible when silenced**: notes of a muted track, group or folder are drawn at half strength on the grid, and so is everything outside a solo while anything is soloed (the panel rows dim the same way). You can solo several tracks, groups and folders at once; "Clear all solos" clears the site's instrument solos too.
 
+### Add a song into this one
+**＋ Add a song** in the Layers panel (or its ⋯ menu) adds another sequence to the one you're editing — from a `.sequence` file or a link to a sequence on the site. Nothing already here is replaced:
+- Its instruments come with their own settings (volume, effects, colour, name).
+- An instrument this song already uses isn't overwritten: the incoming part goes onto a **new copy (clone)** of that instrument, with the incoming settings, named after the song it came from (e.g. "Bass Guitar · TIME | pathway").
+- Its per-instrument automation comes along on the same instruments; its tempo changes only if you tick *Use its tempo* (they'd change this whole song's speed).
+- Put it at the start, at the playhead, or after the end of this song. **Ctrl+Z** takes the whole addition back out.
+- Dropping a `.sequence` file onto an editor that already has notes asks whether to **add it** or **open it instead** (the site's usual replace).
+
+In Layers, every song's tracks sit in a **folder named after the song**, and each added song gets its own folder beside it.
+
 ## Slide notes (FL Studio style)
 
 Slide notes work the way they do in FL Studio's piano roll: a slide note is **silent**; it bends whatever note is already playing on its instrument to its own pitch, taking its own length to get there, and the bent note stays there (or follows the next slide note) until it ends. No extra instrument is made — the slide note sits on the same instrument as the note it bends.

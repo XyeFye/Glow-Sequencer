@@ -146,7 +146,8 @@
     const info = dlg.querySelector(".osg-mg-info"), go = dlg.querySelector(".osg-mg-go"), opts = dlg.querySelector(".osg-mg-opts");
     const show = (sp, name) => {
       const p = plan(sp); got = { sp, name };
-      const names = p.clash.slice(0, 6).map(baseName).join(", ") + (p.clash.length > 6 ? `, +${p.clash.length - 6} more` : "");
+      const count = new Map(); for (const i of p.clash) { const b = baseName(i); count.set(b, (count.get(b) || 0) + 1); }
+      const list = [...count].map(([b, k]) => (k > 1 ? `${b} ×${k}` : b)), names = list.slice(0, 6).join(", ") + (list.length > 6 ? `, +${list.length - 6} more` : "");
       info.hidden = false; info.className = "osg-mg-info";
       info.innerHTML = `<b>${esc(name)}</b> — ${p.notes.toLocaleString()} note${p.notes === 1 ? "" : "s"} on ${p.ins.length} instrument${p.ins.length === 1 ? "" : "s"}.` + (p.clash.length ? `<br>${p.clash.length} of them ${p.clash.length === 1 ? "is" : "are"} already used here (${esc(names)}) — ${p.clash.length === 1 ? "it goes" : "they go"} on new copies.` : "<br>None of its instruments are used here yet.");
       opts.hidden = false; go.disabled = false; go.focus();
